@@ -1,0 +1,29 @@
+{
+  "id": "bbssCodeNodeTest1",
+  "name": "BBSS test Code-node",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "a1b2c3d4-0000-4000-8000-000000000001",
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const crypto = require('crypto');\nconst sleutel = $env.BBSS_TOKEN_SLEUTEL;\nif (!/^[0-9a-f]{64}$/i.test(sleutel || '')) throw new Error('BBSS_TOKEN_SLEUTEL niet leesbaar of geen 64 hex-tekens');\nconst iv = crypto.randomBytes(12);\nconst c = crypto.createCipheriv('aes-256-gcm', Buffer.from(sleutel, 'hex'), iv);\nconst enc = Buffer.concat([c.update('test', 'utf8'), c.final()]);\nconst d = crypto.createDecipheriv('aes-256-gcm', Buffer.from(sleutel, 'hex'), iv);\nd.setAuthTag(c.getAuthTag());\nconst terug = Buffer.concat([d.update(enc), d.final()]).toString('utf8');\nconst h = crypto.createHmac('sha1', 'x').update('y').digest('base64');\nconst gelijk = crypto.timingSafeEqual(Buffer.from(h), Buffer.from(h));\nreturn [{ json: { crypto_werkt: terug === 'test', hmac_werkt: gelijk, hoofdtoken_leesbaar: !!$env.TWILIO_HOOFD_AUTH_TOKEN } }];"
+      },
+      "id": "a1b2c3d4-0000-4000-8000-000000000002",
+      "name": "Test",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 0]
+    }
+  ],
+  "connections": {
+    "Start": { "main": [[{ "node": "Test", "type": "main", "index": 0 }]] }
+  },
+  "settings": {}
+}
